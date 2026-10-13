@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1976d2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FEクイズ">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>基本情報技術者試験 午前クイズ</title>
+  <style>
+    :root {
+      --primary-color: #1976d2;
+      --primary-hover: #1565c0;
+      --primary-light: #e3f2fd;
+      --success-color: #2e7d32;
+      --success-light: #e8f5e9;
+      --error-color: #c62828;
+      --error-light: #ffebee;
+      --text-main: #212121;
+      --text-muted: #666666;
+      --bg-color: #f5f7fb;
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 12px;
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: calc(var(--safe-bottom) + 20px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .progress-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background-color: var(--bg-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 4px;
+      background-color: #e0e0e0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #1976d2, #42a5f5);
+      transition: width 0.3s ease;
+    }
+
+    main {
+      flex: 1;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .quiz-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 16px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      background-color: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background-color: #fafafa;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      background-color: #f0f7ff;
+      border-color: var(--primary-color);
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .option-btn:disabled {
+      cursor: default;
+    }
+
+    .option-btn.correct {
+      background-color: var(--success-light) !important;
+      border-color: var(--success-color) !important;
+      color: var(--success-color) !important;
+      font-weight: 600;
+    }
+
+    .option-btn.incorrect {
+      background-color: var(--error-light) !important;
+      border-color: var(--error-color) !important;
+      color: var(--error-color) !important;
+      font-weight: 600;
+    }
+
+    .option-marker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #eeeeee;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .option-btn.correct .option-marker {
+      background-color: var(--success-color);
+      color: #fff;
+    }
+
+    .option-btn.incorrect .option-marker {
+      background-color: var(--error-color);
+      color: #fff;
+    }
+
+    .option-label {
+      flex: 1;
+    }
+
+    .feedback-box {
+      margin-top: 16px;
+      border-radius: 10px;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .feedback-box.correct {
+      background-color: var(--success-light);
+      border: 1px solid #c8e6c9;
+    }
+
+    .feedback-box.incorrect {
+      background-color: var(--error-light);
+      border: 1px solid #ffcdd2;
+    }
+
+    .feedback-header {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .feedback-box.correct .feedback-header {
+      color: var(--success-color);
+    }
+
+    .feedback-box.incorrect .feedback-header {
+      color: var(--error-color);
+    }
+
+    .correct-answer-text {
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .explanation-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .explanation-content {
+      font-size: 0.9rem;
+      color: #333333;
+      line-height: 1.55;
+    }
+
+    .action-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .primary-btn {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      width: 100%;
+    }
+
+    .primary-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    .completed-card {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completed-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+    }
+
+    .completed-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--primary-color);
+    }
+
+    .completed-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="app-title">
+        <span>📖</span>
+        <span>基本情報 午前クイズ</span>
+      </div>
+      <div class="progress-text" id="progress-indicator">Q 1 / 5</div>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </header>
+
+  <main>
+    <div id="quiz-container" class="quiz-card">
+      <div class="category-badge" id="category-badge">テクノロジ系</div>
+      <div class="question-text" id="question-text">問題を読み込み中...</div>
+
+      <div class="options-container" id="options-container">
+        <!-- 選択肢が動的に挿入されます -->
+      </div>
+
+      <div id="feedback-section" style="display: none;">
+        <div class="feedback-box" id="feedback-box">
+          <div class="feedback-header" id="feedback-header"></div>
+          <div class="correct-answer-text" id="correct-answer-text"></div>
+          <div class="explanation-title">解説</div>
+          <div class="explanation-content" id="explanation-content"></div>
+        </div>
+
+        <div class="action-container">
+          <button class="primary-btn" id="next-btn" onclick="nextQuestion()">
+            <span>次の問題へ</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="completed-container" class="quiz-card completed-card" style="display: none;">
+      <div class="completed-icon">🎉</div>
+      <h2 class="completed-title">全問解答完了！</h2>
+      <p class="completed-desc">収録されたすべての問題に解答しました。お疲れ様でした！</p>
+      <button class="primary-btn" onclick="restartQuiz()">最初から解き直す</button>
+    </div>
+  </main>
+
+  <script>
+    // 基本情報技術者試験の過去問モックデータ (5問)
+    const questions = [
+      {
+        id: "fe-001",
+        category: "テクノロジ系 (基礎理論)",
+        question: "2進数 0110 1010 を2倍した値として、正しいものはどれか。あふれ（オーバーフロー）は発生しないものとする。",
+        options: [
+          "0011 0101",
+          "1101 0100",
+          "0110 1010 0",
+          "1011 0100"
+        ],
+        correctIndex: 1,
+        explanation: "2進数を2倍にするには、左に1ビット論理シフトします。\n「0110 1010」を左に1ビットシフトすると「1101 0100」となります。\n※右に1ビットシフトした場合は1/2倍（0011 0101）となります。"
+      },
+      {
+        id: "fe-002",
+        category: "テクノロジ系 (セキュリティ)",
+        question: "公開鍵暗号方式を用いて送信者Aから受信者Bへ暗号化通信を行う場合、データの暗号化と復号に用いる鍵の組合せとして、適切なものはどれか。",
+        options: [
+          "暗号化にはAの公開鍵、復号にはAの秘密鍵",
+          "暗号化にはBの公開鍵、復号にはBの秘密鍵",
+          "暗号化にはAの秘密鍵、復号にはBの公開鍵",
+          "暗号化にはBの秘密鍵、復号にはAの公開鍵"
+        ],
+        correctIndex: 1,
+        explanation: "公開鍵暗号方式で暗号化通信を行う場合、機密性を保つために「受信者Bの公開鍵」で暗号化し、受信者だけが持つ「受信者Bの秘密鍵」で復号します。"
+      },
+      {
+        id: "fe-003",
+        category: "ストラテジ系 (経営戦略)",
+        question: "企業活動におけるSWOT分析の説明として、最も適切なものはどれか。",
+        options: [
+          "企業の内部環境（強み・弱み）と外部環境（機会・脅威）を組み合わせて現状を分析する手法",
+          "製品の市場成長率と市場占有率から事業ポートフォリオを4象限に分類する手法",
+          "業務プロセスを根本から再構築してコストや品質を革新する手法",
+          "顧客との長期的な関係性を構築・維持してLTV（顧客生涯価値）を高める手法"
+        ],
+        correctIndex: 0,
+        explanation: "SWOT分析は、Strength（強み）、Weakness（弱み）という内部環境要因と、Opportunity（機会）、Threat（脅威）という外部環境要因を分析するフレームワークです。\n（選択肢のイはPPM、ウはBPR、エはCRMの説明です）"
+      },
+      {
+        id: "fe-004",
+        category: "マネジメント系 (プロジェクトマネジメント)",
+        question: "アローダイアグラム（PERT）において、プロジェクトの開始から終了までの所要日数が最も長くなる経路を何と呼ぶか。",
+        options: [
+          "最短経路",
+          "クリティカルパス",
+          "マイルストーン",
+          "スラックパス"
+        ],
+        correctIndex: 1,
+        explanation: "開始から終了までの所要日数が最も長い経路を「クリティカルパス（重大経路）」と呼びます。クリティカルパス上の作業が遅れるとプロジェクト全体の工期遅延に直結します。"
+      },
+      {
+        id: "fe-005",
+        category: "テクノロジ系 (データベース)",
+        question: "関係データベースの正規化において、主キーの一部に関数従属している属性を排除し、すべての非キー属性が主キーに対して完全関数従属している状態はどれか。",
+        options: [
+          "第1正規形",
+          "第2正規形",
+          "第3正規形",
+          "ボイス・コッド正規形"
+        ],
+        correctIndex: 1,
+        explanation: "第1正規形から「部分関数従属」を排除し、すべての非キー属性が主キーに完全関数従属した状態を「第2正規形」と呼びます。\n主キー以外の属性への推移的関数従属を排除すると「第3正規形」になります。"
+      }
+    ];
+
+    const OPTION_LABELS = ['ア', 'イ', 'ウ', 'エ'];
+
+    let currentIndex = 0;
+    let isAnswered = false;
+
+    // DOM要素の取得
+    const quizContainer = document.getElementById('quiz-container');
+    const completedContainer = document.getElementById('completed-container');
+    const categoryBadge = document.getElementById('category-badge');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackSection = document.getElementById('feedback-section');
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackHeader = document.getElementById('feedback-header');
+    const correctAnswerText = document.getElementById('correct-answer-text');
+    const explanationContent = document.getElementById('explanation-content');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const progressBar = document.getElementById('progress-bar');
+    const nextBtn = document.getElementById('next-btn');
+
+    // 問題を表示
+    function renderQuestion() {
+      if (currentIndex >= questions.length) {
+        showCompleted();
+        return;
+      }
+
+      const q = questions[currentIndex];
+      isAnswered = false;
+
+      // 進捗表示の更新
+      progressIndicator.textContent = `Q ${currentIndex + 1} / ${questions.length}`;
+      progressBar.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+
+      // 問題文・カテゴリの更新
+      categoryBadge.textContent = q.category;
+      questionText.textContent = q.question;
+
+      // 選択肢の生成
+      optionsContainer.innerHTML = '';
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.onclick = () => selectOption(index);
+
+        const marker = document.createElement('span');
+        marker.className = 'option-marker';
+        marker.textContent = OPTION_LABELS[index] || (index + 1);
+
+        const label = document.createElement('span');
+        label.className = 'option-label';
+        label.textContent = opt;
+
+        btn.appendChild(marker);
+        btn.appendChild(label);
+        optionsContainer.appendChild(btn);
+      });
+
+      // フィードバック領域を非表示にしてリセット
+      feedbackSection.style.display = 'none';
+      feedbackBox.className = 'feedback-box';
+
+      // ボタン文言の切り替え（最後は「結果を確認」）
+      if (currentIndex === questions.length - 1) {
+        nextBtn.innerHTML = '<span>終了する</span><span>➔</span>';
+      } else {
+        nextBtn.innerHTML = '<span>次の問題へ</span><span>➔</span>';
+      }
+
+      quizContainer.style.display = 'block';
+      completedContainer.style.display = 'none';
+    }
+
+    // 選択肢をタップした時の処理
+    function selectOption(selectedIndex) {
+      if (isAnswered) return;
+      isAnswered = true;
+
+      const q = questions[currentIndex];
+      const isCorrect = selectedIndex === q.correctIndex;
+      const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+
+      // 全ボタンを無効化し、正誤スタイルを適用
+      optionButtons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.correctIndex) {
+          btn.classList.add('correct');
+        } else if (idx === selectedIndex) {
+          btn.classList.add('incorrect');
+        }
+      });
+
+      // フィードバックの表示
+      feedbackSection.style.display = 'block';
+      if (isCorrect) {
+        feedbackBox.className = 'feedback-box correct';
+        feedbackHeader.innerHTML = '<span>⭕</span><span>正解です！</span>';
+      } else {
+        feedbackBox.className = 'feedback-box incorrect';
+        feedbackHeader.innerHTML = '<span>❌</span><span>不正解です</span>';
+      }
+
+      correctAnswerText.textContent = `正解: ${OPTION_LABELS[q.correctIndex]} (${q.options[q.correctIndex]})`;
+      explanationContent.textContent = q.explanation;
+
+      // スムーズスクロールで解説部分へスクロール
+      setTimeout(() => {
+        feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+    }
+
+    // 次の問題へ
+    function nextQuestion() {
+      currentIndex++;
+      renderQuestion();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 全問完了画面の表示
+    function showCompleted() {
+      quizContainer.style.display = 'none';
+      completedContainer.style.display = 'block';
+      progressIndicator.textContent = `完了`;
+      progressBar.style.width = '100%';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 最初からやり直す
+    function restartQuiz() {
+      currentIndex = 0;
+      renderQuestion();
+    }
+
+    // 初期化実行
+    renderQuestion();
+  </script>
+</body>
+</html>
