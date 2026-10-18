@@ -317,7 +317,25 @@
     .completed-desc {
       font-size: 0.95rem;
       color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .score-display {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .accuracy-display {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary-color);
       margin-bottom: 28px;
+      padding: 8px 16px;
+      background-color: var(--primary-light);
+      border-radius: 8px;
+      display: inline-block;
     }
 
     @keyframes fadeIn {
@@ -376,6 +394,8 @@
       <div class="completed-icon">🎉</div>
       <h2 class="completed-title">全問解答完了！</h2>
       <p class="completed-desc">収録されたすべての問題に解答しました。お疲れ様でした！</p>
+      <p class="score-display">正解数: <span id="score-count"></span> / <span id="total-count"></span></p>
+      <p class="accuracy-display">正答率: <span id="accuracy-rate"></span>%</p>
       <button class="primary-btn" onclick="restartQuiz()">最初から解き直す</button>
     </div>
   </main>
@@ -454,6 +474,7 @@
 
     let currentIndex = 0;
     let isAnswered = false;
+    let correctCount = 0;
 
     // DOM要素の取得
     const quizContainer = document.getElementById('quiz-container');
@@ -545,6 +566,7 @@
       // フィードバックの表示
       feedbackSection.style.display = 'block';
       if (isCorrect) {
+        correctCount++;
         feedbackBox.className = 'feedback-box correct';
         feedbackHeader.innerHTML = '<span>⭕</span><span>正解です！</span>';
       } else {
@@ -574,16 +596,33 @@
       completedContainer.style.display = 'block';
       progressIndicator.textContent = `完了`;
       progressBar.style.width = '100%';
+
+      const accuracy = Math.round((correctCount / questions.length) * 100);
+      document.getElementById('score-count').textContent = correctCount;
+      document.getElementById('total-count').textContent = questions.length;
+      document.getElementById('accuracy-rate').textContent = accuracy;
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 配列をシャッフルする関数 (Fisher-Yates)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
     }
 
     // 最初からやり直す
     function restartQuiz() {
       currentIndex = 0;
+      correctCount = 0;
+      shuffleArray(questions);
       renderQuestion();
     }
 
     // 初期化実行
+    shuffleArray(questions);
     renderQuestion();
   </script>
 </body>
