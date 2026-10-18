@@ -331,11 +331,172 @@
       font-size: 1.1rem;
       font-weight: 600;
       color: var(--primary-color);
-      margin-bottom: 28px;
+      margin-bottom: 20px;
       padding: 8px 16px;
       background-color: var(--primary-light);
       border-radius: 8px;
       display: inline-block;
+    }
+
+    .pass-badge {
+      display: inline-block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .pass-badge.pass {
+      background-color: var(--success-light);
+      color: var(--success-color);
+      border: 1.5px solid var(--success-color);
+    }
+
+    .pass-badge.fail {
+      background-color: #fff3e0;
+      color: #e65100;
+      border: 1.5px solid #ffb74d;
+    }
+
+    .review-section {
+      margin-top: 24px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .review-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .review-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .review-item {
+      background-color: #fafafa;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .review-item[open] {
+      border-color: var(--primary-color);
+      background-color: #ffffff;
+    }
+
+    .review-summary {
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      list-style: none;
+    }
+
+    .review-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .review-summary-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .review-status {
+      font-size: 1.1rem;
+    }
+
+    .review-qnum {
+      font-weight: 700;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+
+    .review-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      background-color: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .review-toggle-icon {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .review-item[open] .review-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .review-content {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border-color);
+      background-color: #ffffff;
+      font-size: 0.9rem;
+    }
+
+    .review-qtext {
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      white-space: pre-line;
+    }
+
+    .review-answers {
+      background-color: var(--bg-color);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .review-user-ans {
+      font-weight: 600;
+    }
+
+    .review-user-ans.correct-text {
+      color: var(--success-color);
+    }
+
+    .review-user-ans.incorrect-text {
+      color: var(--error-color);
+    }
+
+    .review-correct-ans {
+      font-weight: 600;
+      color: var(--success-color);
+    }
+
+    .review-exp-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .review-exp-body {
+      color: #333333;
+      white-space: pre-line;
+      line-height: 1.5;
     }
 
     @keyframes fadeIn {
@@ -394,8 +555,13 @@
       <div class="completed-icon">🎉</div>
       <h2 class="completed-title">全問解答完了！</h2>
       <p class="completed-desc">収録されたすべての問題に解答しました。お疲れ様でした！</p>
+      <div id="pass-badge" class="pass-badge"></div>
       <p class="score-display">正解数: <span id="score-count"></span> / <span id="total-count"></span></p>
       <p class="accuracy-display">正答率: <span id="accuracy-rate"></span>%</p>
+      <div id="review-section" class="review-section">
+        <h3 class="review-title">🔍 見直し一覧</h3>
+        <div id="review-list" class="review-list"></div>
+      </div>
       <button class="primary-btn" onclick="restartQuiz()">最初から解き直す</button>
     </div>
   </main>
@@ -475,6 +641,7 @@
     let currentIndex = 0;
     let isAnswered = false;
     let correctCount = 0;
+    let userAnswers = [];
 
     // DOM要素の取得
     const quizContainer = document.getElementById('quiz-container');
@@ -549,6 +716,8 @@
       if (isAnswered) return;
       isAnswered = true;
 
+      userAnswers[currentIndex] = selectedIndex;
+
       const q = questions[currentIndex];
       const isCorrect = selectedIndex === q.correctIndex;
       const optionButtons = optionsContainer.querySelectorAll('.option-btn');
@@ -602,6 +771,99 @@
       document.getElementById('total-count').textContent = questions.length;
       document.getElementById('accuracy-rate').textContent = accuracy;
 
+      // 合格判定バッジの表示 (60%基準)
+      const passBadge = document.getElementById('pass-badge');
+      if (accuracy >= 60) {
+        passBadge.textContent = '合格基準達成！ 🎉';
+        passBadge.className = 'pass-badge pass';
+      } else {
+        passBadge.textContent = '不合格（復習しましょう）';
+        passBadge.className = 'pass-badge fail';
+      }
+
+      // 見直し一覧の生成
+      const reviewList = document.getElementById('review-list');
+      reviewList.innerHTML = '';
+
+      questions.forEach((q, idx) => {
+        const userSel = userAnswers[idx];
+        const isCorrect = userSel === q.correctIndex;
+
+        const details = document.createElement('details');
+        details.className = 'review-item';
+
+        const summary = document.createElement('summary');
+        summary.className = 'review-summary';
+
+        const summaryLeft = document.createElement('div');
+        summaryLeft.className = 'review-summary-left';
+
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'review-status';
+        statusSpan.textContent = isCorrect ? '⭕' : '❌';
+
+        const qnumSpan = document.createElement('span');
+        qnumSpan.className = 'review-qnum';
+        qnumSpan.textContent = `問${idx + 1}`;
+
+        const catSpan = document.createElement('span');
+        catSpan.className = 'review-category';
+        catSpan.textContent = q.category;
+
+        summaryLeft.appendChild(statusSpan);
+        summaryLeft.appendChild(qnumSpan);
+        summaryLeft.appendChild(catSpan);
+
+        const toggleIcon = document.createElement('span');
+        toggleIcon.className = 'review-toggle-icon';
+        toggleIcon.textContent = '▼';
+
+        summary.appendChild(summaryLeft);
+        summary.appendChild(toggleIcon);
+
+        const content = document.createElement('div');
+        content.className = 'review-content';
+
+        const qtext = document.createElement('p');
+        qtext.className = 'review-qtext';
+        qtext.textContent = q.question;
+
+        const answersDiv = document.createElement('div');
+        answersDiv.className = 'review-answers';
+
+        const userAnsP = document.createElement('p');
+        userAnsP.className = `review-user-ans ${isCorrect ? 'correct-text' : 'incorrect-text'}`;
+        const userLabel = userSel !== undefined ? `${OPTION_LABELS[userSel]} (${q.options[userSel]})` : '未解答';
+        userAnsP.textContent = `あなたの回答: ${userLabel}`;
+
+        answersDiv.appendChild(userAnsP);
+
+        if (!isCorrect) {
+          const correctAnsP = document.createElement('p');
+          correctAnsP.className = 'review-correct-ans';
+          correctAnsP.textContent = `正解: ${OPTION_LABELS[q.correctIndex]} (${q.options[q.correctIndex]})`;
+          answersDiv.appendChild(correctAnsP);
+        }
+
+        const expTitle = document.createElement('div');
+        expTitle.className = 'review-exp-title';
+        expTitle.textContent = '解説';
+
+        const expBody = document.createElement('div');
+        expBody.className = 'review-exp-body';
+        expBody.textContent = q.explanation;
+
+        content.appendChild(qtext);
+        content.appendChild(answersDiv);
+        content.appendChild(expTitle);
+        content.appendChild(expBody);
+
+        details.appendChild(summary);
+        details.appendChild(content);
+
+        reviewList.appendChild(details);
+      });
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -617,6 +879,11 @@
     function restartQuiz() {
       currentIndex = 0;
       correctCount = 0;
+      userAnswers = [];
+      const reviewList = document.getElementById('review-list');
+      if (reviewList) {
+        reviewList.innerHTML = '';
+      }
       shuffleArray(questions);
       renderQuestion();
     }
